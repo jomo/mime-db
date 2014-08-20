@@ -25,6 +25,9 @@ var db = require('mime-db');
 
 // grab data on .js files
 var data = db['application/javascript'];
+
+// grab mime types for extension
+var type = db.extension['js']
 ```
 
 If you're crazy enough to use this in the browser,
@@ -35,6 +38,8 @@ https://cdn.rawgit.com/jshttp/mime-db/master/db.json
 ```
 
 ## Data Structure
+
+### db.json
 
 The JSON file is a map lookup for lowercased mime types.
 Each mime type has the following properties:
@@ -49,12 +54,19 @@ Each mime type has the following properties:
 
 If unknown, every property could be `undefined`.
 
+### db-ext.json
+
+The JSON file is a map lookup for lowercased file extensions
+to mime types. Each extension has an array of possible mime
+types. The array is ordered by preference.
+
 ## Repository Structure
 
 - `scripts` - these are scripts to run to build the database
 - `src/` - this is a folder of files created from remote sources like Apache and IANA
 - `lib/` - this is a folder of our own custom sources and db, which will be merged into `db.json`
 - `db.json` - the final built JSON file for end-user usage
+- `db-ext.json` - build JSON for extension-to-type lookup
 
 ## Contributing
 

@@ -1,5 +1,6 @@
 
 var db = {}
+var ext = {}
 
 // initialize with all the IANA types
 require('../src/iana.json').forEach(function (mime) {
@@ -31,32 +32,14 @@ require('../src/iana.json').forEach(function (mime) {
 })
 
 // add the mime extensions from Apache
-var mime = require('../src/mime.json')
-Object.keys(mime).forEach(function (type) {
-  var e = mime[type]
-  var t = type.toLowerCase()
-  var o = db[t] = db[t] || {source: 'apache'}
-  if (e.length) o.extensions = (o.extensions || []).concat(e)
-})
+accum(require('../src/mime.json'), 'apache')
 
 // add all of node mime's mime extensions
 // though i think we should just put this in `types.json`
-var mime = require('../src/node.json')
-Object.keys(mime).forEach(function (type) {
-  var e = mime[type]
-  var t = type.toLowerCase()
-  var o = db[t] = db[t] || {}
-  if (e.length) o.extensions = (o.extensions || []).concat(e)
-})
+accum(require('../src/node.json'))
 
 // now add all our custom extensions
-var mime = require('../lib/extensions.json')
-Object.keys(mime).forEach(function (type) {
-  var e = mime[type]
-  var t = type.toLowerCase()
-  var o = db[t] = db[t] || {}
-  if (e.length) o.extensions = (o.extensions || []).concat(e)
-})
+accum(require('../lib/extensions.json'))
 
 // add all the compressible metadata
 var mime = require('../lib/compressible.json')
@@ -73,3 +56,21 @@ Object.keys(charsets).forEach(function (name) {
 
 // write db
 require('./lib/write-db')('db.json', db)
+require('./lib/write-db-ext')('db-ext.json', ext)
+
+function accum(mime, source) {
+  var create = source !== undefined
+    ? function () { return {source: source} }
+    : function () { return {} }
+
+  Object.keys(mime).forEach(function (type) {
+    var e = mime[type]
+    var t = type.toLowerCase()
+    var o = db[t] = db[t] || create()
+
+    if (!e.length) return
+
+    o.extensions = (o.extensions || []).concat(e)
+    e.forEach(function (e) { ext[e] = (ext[e] || []).concat(t) })
+  })
+}
